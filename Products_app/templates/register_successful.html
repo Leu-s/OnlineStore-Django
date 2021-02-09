@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+    <h2>Поздравляем!</h2>
+    <p>Ваш аккаунт зарегестрирован.</p>
+    <p><a href="{% url 'products:login' %}">Войти</a></p>
+{% endblock %}

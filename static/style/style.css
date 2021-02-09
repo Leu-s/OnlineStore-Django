@@ -1,0 +1,10 @@
+header h1 {
+    background: url("img1.jpg") left / auto 100% no-repeat;
+}
+
+#menu_cat_btn:active {
+    background-color: #007BFF;
+    color: white;
+    opacity: 88%;
+
+}

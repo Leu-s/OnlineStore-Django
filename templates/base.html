@@ -1,0 +1,129 @@
+{% load bootstrap4 %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta http-equiv="Content-Type"
+        content="text/html; charset=utf-8">
+        <meta name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="shortcut icon" type="image/png" href="{% static '/favicon.ico' %}"/>
+        <title>{% block title %}Главная{% endblock %} - Online Store</title>
+        {% bootstrap_css %}
+        <link rel="stylesheet" type="text/css" href="{% static 'style/style.css' %}">
+        {% bootstrap_javascript jquery="slim" %}
+    </head>
+    <body class="container-fluid">
+        <header class="mb-4">
+            <h1 class="display-1 text-center">Online Store</h1>
+        </header>
+        <div class="row">
+            <ul class="row nav justify-content-between border-top border-bottom" style="margin-left: 0">
+                <a  class="nav-link" href="{% url 'products:index' %}">Главная</a>
+                <a  class="nav-link" href="{% url 'products:other' page='about' %}">О нас</a>
+            </ul>
+            <ul class="col nav justify-content-end border-top border-bottom">
+                {% if not user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'products:register' %}">
+                            Регистрация
+                        </a>
+                    </li>
+                {% endif %}
+                {% if user.is_authenticated %}
+                    <li class="dropdown">
+                        <a class="nav-link dropdown-toggle"
+                           href="#" role="button"
+                           data-toggle="dropdown"
+                           aria-haspopup="true"
+                           aria-expanded="false">
+                            {{ user.username }}
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item"
+                               href="{% url 'products:profile' %}">
+                                Профиль
+                            </a>
+                            <a class="dropdown-item"
+                               href="{% url 'cart:cart_detail' %}">
+                                Корзина
+                            </a>
+                            <a class="dropdown-item"
+                               href="#">
+                                Мои заказы
+                            </a>
+                            <a class="dropdown-item"
+                               href="{% url 'products:profile_change_info' %}">
+                                Изменить личные данные
+                            </a>
+                            <a class="dropdown-item"
+                               href="{% url 'products:change_password' %}">
+                                Изменить пароль
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item"
+                               href="{% url 'products:logout' %}">
+                                Выйти
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'products:delete_profile' %}">
+                                Удалить профиль
+                            </a>
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           href="{% url 'products:login' %}">
+                            Вход
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+        <div class="row border-bottom">
+            <hr>
+                <hr>
+                    <ul style="margin-left: 0; padding-left: 0">
+                        {% for super_cat in supercategories %}
+                            <li class="nav-item dropdown dropright" style="list-style-type: none">
+                                <a class="nav-link dropdown-toggle"
+                                   href="#"
+                                   data-toggle="dropdown"
+                                   aria-haspopup="true"
+                                   aria-expanded="false">
+                                    {{ super_cat.name }}
+                                </a>
+                                <div class="dropdown-menu">
+                                    {% for category in categories %}
+                                        {% if category.super_category.pk == super_cat.pk %}
+                                            {% ifchanged %}
+                                                <a class="dropdown-item" id="menu_cat_btn"
+                                                   href="{% url 'products:in_category' super_cat.pk %}">
+                                                    {{  super_cat.name  }}
+                                                    <div class="dropdown-divider"></div>
+                                                </a>
+                                            {% endifchanged %}
+                                            <a class="dropdown-item"
+                                               href="{% url 'products:in_sub_category' category.pk %}">
+                                                {{ category.name }}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+            <section class="col border-left py-2">
+                {% bootstrap_messages %}
+                {% block content %}
+                {% endblock %}
+            </section>
+        </div>
+        <footer class="mt-3">
+            <p class="text-right font-italic">&copy;Online Store, 2021</p>
+        </footer>
+    </body>
+</html>

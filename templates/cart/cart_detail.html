@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+    <div class="tab-content">
+    {% if cart %}
+        <table class="table align-self-auto">
+          <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Изображение</th>
+                <th scope="col">Название</th>
+                <th scope="col">Колличество</th>
+                <th scope="col">Цена за штуку</th>
+                <th scope="col">Цена</th>
+                <th scope="col">Убрать из корзины</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for item in cart %}
+              {% with product=item.product %}
+                  <tr>
+                  <td>{{ forloop.counter }}</td>
+                      <td><a href="{{ product.get_absolute_url }}">
+                                    <img style="max-width: 55pt; max-height: 55pt"
+                                         src="
+                                        {% if product.image %}
+                                            {{ product.image.url }}
+                                        {% else %}
+                                            {% static "style/default.jpg" %}
+                                        {% endif %}"></td>
+                      <td><a href="{% url 'products:product_detail' product.pk %}">{{ product.title }}</a></td>
+                      <td>{{ item.quantity }} шт.</td>
+                      <td>{{ item.price }}{{ product.currency }}</td>
+                      <td>{{ item.total_price }}</td>
+                      <td><a href="{% url 'cart:cart_remove' product.pk %}">Убрать</a></td>
+                  </tr>
+              {% endwith %}
+          {% endfor %}
+          </tbody>
+        </table>
+    {% else %}
+        <h3>Корзина пуста</h3>
+    {% endif %}
+    <hr>
+        <tr>
+            <td>Итог:</td>
+            <td colspan="4"></td>
+            <td class="num"><h2>{{ cart.get_total_price }} грн</h2></td>
+        </tr>
+    <p class="text-right">
+        <a href="{% url "products:index" %}" class="button light">Продолжить покупки</a>
+        <a href="#" class="button">Оформить заказ</a>
+    </p>
+    </div>
+{% endblock %}

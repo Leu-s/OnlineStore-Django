@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+
+{% block title %}{{ product.title }}{% endblock %}
+
+{% block content %}
+     <div class="container-fluid mt-3">
+        <div class="row">
+            {% if product.image %}
+                <div class="col-md-auto">
+                    <img src="{{ product.image.url }}"
+                         class="main-image"
+                         style="max-width: 250pt; max-height: 300pt">
+                {% if images %}
+                    <div class="row-md-auto">
+                        {% for img in images %}
+                            <img style="max-width: 100pt;
+                                        max-height: 150pt;
+                                        margin: 15pt"
+                                 src="{{ img.image.url }}"
+                                 class="other-images">
+                        {% endfor %}
+                     </div>
+                </div>
+                {% endif %}
+            {% endif %}
+            <div class="col">
+                <h2>{{ product.title }}</h2>
+                {% if product.in_stock %}
+                    <p class="text-left font-weight-bold" style="color: #50C878">Есть в наличии</p>
+                {% else %}
+                      <p class="text-left font-weight-bold" style="color: #50C878">Нет в наличии</p>
+                {% endif %}
+                <p>{{ product.description }}</p>
+                <p class="text-left" style="font-size: 17pt">{{ product.price }} {{ product.currency}}</p>
+                <form action="{% url 'cart:cart_add' product.pk %}" method="post">
+                    {% csrf_token %}
+                    {% bootstrap_form cart_form %}
+                    {% bootstrap_button 'Добавить в корзину' name='add_to_cart'%}
+                </form>
+            </div>
+        </div>
+     </div>
+    <hr>
+    <h4 class="mt-5">Комментарии</h4>
+    {% if comments %}
+        {% bootstrap_pagination page url=search_keyword%}
+        <div class="mt-5"></div>
+            {% for comment in comments %}
+                <h5>{{ comment.author }}</h5>
+                <p>{{ comment.text }}</p>
+                <p class="text-right font-italic">{{ comment.published }}</p>
+            {% endfor %}
+        {% bootstrap_pagination page url=search_keyword %}
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        {% bootstrap_form comment_form show_label=False size='small' %}
+        {% bootstrap_button 'Добавить комментарий' name='add_comment' %}
+    </form>
+{% endblock %}

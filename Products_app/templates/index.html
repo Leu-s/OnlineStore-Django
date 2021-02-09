@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% load bootstrap4 %}
+{% load static %}
+{% load thumbnail %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+    <div class="container-fluid mb-2">
+        <div class="col">&nbsp;</div>
+        <form>
+            {% bootstrap_form form show_label=False %}
+            {% bootstrap_button content='Найти' button_type='submit' %}
+        </form>
+        <hr>
+        <p><a href="{% url 'products:index' %}">Главная</a>  /</p>
+        <hr>
+    </div>
+
+    {% if products %}
+        <ul class="list-unstyled">
+            {% for product in products %}
+                <li class="media my-5 p-3 border">
+                    {% if product.image %}
+                        <img class="mr-3" src="{% thumbnail product.image 'default' %}">
+                    {% else %}
+                        <img class="mr-3" src="{% static 'stype/img1.jpg' %}">
+                    {% endif %}
+
+                    <div class="media-body">
+                        <h3>
+                            <a href="{% url 'products:product_detail' product.pk %}">
+                                {{ product.title }}
+                            </a>
+                        </h3>
+                        <div>{{ product.description }}</div>
+                        <p class="text-right font-weight-bold">
+                            {{ product.price }} {{ product.currency }}
+                        </p>
+                        <p class="text-right font-italic">
+                            {{ product.published }}
+                        </p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        {% bootstrap_pagination page url=search_keyword %}
+    {% endif %}
+{% endblock %}
