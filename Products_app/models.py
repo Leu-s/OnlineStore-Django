@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import User
 from .utilities import get_timestamp_path
+from .utilities import my_slugify
+from django_extensions.db.fields import AutoSlugField
 
 
 class AdvUser(AbstractUser):
@@ -82,7 +84,7 @@ class Product(models.Model):
         ('BL', 'Белорусь'),
         ('CN', 'Китай'),
     )
-
+    slug = AutoSlugField(populate_from='title', slugify_function=my_slugify)
     title = models.CharField(max_length=50, verbose_name='Название')
     image = models.ImageField(blank=True, upload_to=get_timestamp_path, verbose_name='Изображение')
     producing_country = models.CharField(null=True, max_length=24,choices=p_countries,

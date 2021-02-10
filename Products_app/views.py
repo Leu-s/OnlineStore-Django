@@ -214,10 +214,9 @@ class InSubCategoryView(ListView):
 class ProductDetailView(DetailView):
     template_name = 'product_detail.html'
     model = Product
-    context_object_name = 'product'
 
     def get_object(self, queryset=None):
-        return get_object_or_404(self.model, pk=self.kwargs['pk'])
+        return get_object_or_404(self.model, slug=self.kwargs['slug'])
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

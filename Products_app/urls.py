@@ -25,7 +25,7 @@ urlpatterns = [
     path('accounts/logout/', PLogoutView.as_view(), name='logout'),
     path('category/sub/<int:pk>/', InSubCategoryView.as_view(), name='in_sub_category'),
     path('category/<int:pk>/', InCategoryView.as_view(), name='in_category'),
-    path('detail/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
+    path('detail/<slug:slug>/', ProductDetailView.as_view(), name='product_detail'),
     path('about/<str:page>/', other_page, name='other'),
     path('', index, name='index'),
 ]
