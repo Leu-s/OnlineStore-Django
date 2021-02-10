@@ -235,6 +235,30 @@ class ProductDetailView(DetailView):
         context['images'] = other_images
         return context
 
+    def _add_product_to_viewed_container(self, container, request):
+        container.append(self.object.slug)
+        request.session['viewed'] = container
+        return request
+
+    def _check_not_duplicate(self, container):
+        if not container:
+            return True
+        prev_elem = len(container) - 1
+        if container[prev_elem] == self.object.slug:
+            return False
+        else:
+            return True
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        viewed = request.session.get('viewed', [])
+
+        if self._check_not_duplicate(viewed):
+            if len(viewed) >= 5:
+                viewed.pop(0)
+            self._add_product_to_viewed_container(viewed, request)
+        return response
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(*args, **kwargs)

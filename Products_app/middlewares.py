@@ -1,5 +1,6 @@
 from .models import SubCategory
 from .models import SuperCategory
+from .models import Product
 
 
 def products_context_processor(request):
@@ -8,6 +9,10 @@ def products_context_processor(request):
                'search_keyword': '',
                'all': ''
                }
+
+    viewed = request.session.get('viewed', [])
+    if viewed:
+        context['viewed'] = [Product.objects.get(slug=p) for p in viewed]
 
     if 'search_keyword' in request.GET:
         keyword = request.GET['search_keyword']
