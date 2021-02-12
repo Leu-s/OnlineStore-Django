@@ -34,7 +34,3 @@ def cart_detail(request):
     cart = ShoppingCart(request)
     return render(request, 'cart/cart_detail.html',
                   {'cart': cart})
-
-
-
-
