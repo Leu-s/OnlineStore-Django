@@ -2,4 +2,3 @@
 __pycache__/
 *.spec
 .git/
-requirements.txt

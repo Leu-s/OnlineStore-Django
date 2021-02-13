@@ -262,7 +262,8 @@ class ProductDetailView(DetailView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         context = self.get_context_data(*args, **kwargs)
-        if 'add_comment' in self.request.POST:
+        if 'add_comment' in self.request.POST and \
+            self.request.user.is_authenticated:
             form = UserCommentForm(self.request.POST)
             if form.is_valid():
                 form.save()

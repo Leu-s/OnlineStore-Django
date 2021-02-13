@@ -31,8 +31,8 @@
                                             {{ product.image.url }}
                                         {% else %}
                                             {% static "style/default.jpg" %}
-                                        {% endif %}"></td>
-                      <td><a href="{% url 'products:product_detail' product.pk %}">{{ product.title }}</a></td>
+                                        {% endif %}">
+                      <td><a href="{% url 'products:product_detail' product.slug %}">{{ product.title }}</a></td>
                       <td>{{ item.quantity }} шт.</td>
                       <td>{{ item.price }}{{ product.currency }}</td>
                       <td>{{ item.total_price }}</td>
