@@ -12,9 +12,16 @@ from .views import PDeleteUserView
 from .views import InCategoryView
 from .views import InSubCategoryView
 from .views import ProductDetailView
+from .views import comment_rating
+from .views import delete_comment
+from .views import user_comments
 
 app_name = 'products'
 urlpatterns = [
+    path('detail/<slug:slug>/rating/<str:action>/<int:comment_pk>/', comment_rating, name='rating'),
+    path('detail/<slug:slug>/del_comment/<int:comment_pk>/', delete_comment, name='comment_delete'),
+    path('accounts/comments/delete/<int:comment_pk>/', delete_comment, name='comment_delete_from_user_comments'),
+    path('accounts/comments/', user_comments, name='user_comments'),
     path('accounts/register/successful', RegisterSuccessfulView.as_view(), name='reg_successful'),
     path('accounts/register/', RegisterUserView.as_view(), name='register'),
     path('accounts/profile/change_password/', PChangePasswordView.as_view(), name='change_password'),

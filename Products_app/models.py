@@ -117,11 +117,23 @@ class Comment(models.Model):
     text = models.TextField(verbose_name='Текст комментария')
     published = models.DateTimeField(auto_now_add=True, db_index=True,
                                      verbose_name='Опубликован')
+    rating = models.IntegerField(default=0, verbose_name='Рейтинг')
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         ordering = ['-published']
+
+
+class CommentRating(models.Model):
+    action = (
+        ('+', 'plus'),
+        ('-', 'minus')
+    )
+    user = models.ForeignKey(AdvUser, on_delete=models.CASCADE, verbose_name='Проголосовавший пользователь')
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Комментарий')
+    last_action = models.CharField(choices=action, default=False, verbose_name='Последнее действие', max_length=10)
+    voted = models.BooleanField(default=False, verbose_name='Уже голосовал?')
 
 
 class AdditionalImages(models.Model):

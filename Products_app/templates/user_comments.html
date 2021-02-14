@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои комментарии{% endblock %}
+
+{% block content %}
+    {% if comments %}
+        <table class="table align-self-auto">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Название товара</th>
+                <th scope="col">Текст комментария</th>
+                <th scope="col">Дата</th>
+                <th scope="col">Рейтинг</th>
+                <th scope="col">Действие</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for comment in comments %}
+                    {% with product=comment.product %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td><a href="{% url 'products:product_detail' product.slug %}">{{ product.title }}</a></td>
+                            <td>{{ comment.text }}</td>
+                            <td>{{ comment.published }}</td>
+                            <td>
+                                {% if comment.rating == 0 %}
+                                  <span style="color: gray; font-weight: bold">{{ comment.rating }}</span>
+                                {% elif comment.rating > 0 %}
+                                  <span style="color: forestgreen; font-weight: bold">{{ comment.rating }}</span>
+                                {% elif comment.rating < 0 %}
+                                  <span style="color: firebrick; font-weight: bold">{{ comment.rating }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                              <a href="{% url "products:comment_delete_from_user_comments" comment_pk=comment.pk  %}">
+                              Удалить
+                              </a>
+                            </td>
+                        </tr>
+                    {% endwith %}
+                {% endfor %}
+          </tbody>
+        </table>
+    {% else %}
+        <h2>Вы ещё не оставили ни одного комментария</h2>
+    {% endif %}
+{% endblock %}

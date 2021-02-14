@@ -1,9 +1,9 @@
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.http import Http404
 from django.db.models import Q
 from django.template.loader import get_template
 from django.template import TemplateDoesNotExist
-from django.shortcuts import HttpResponse
+from django.shortcuts import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.shortcuts import get_object_or_404
 from django.contrib.messages.views import SuccessMessageMixin
@@ -35,6 +35,8 @@ from .forms import SearchForm
 from .forms import UserCommentForm
 
 from cart.forms import CartAddProductForm
+
+from .models import CommentRating
 
 
 def other_page(request, page):
@@ -221,11 +223,8 @@ class ProductDetailView(DetailView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         other_images = AdditionalImages.objects.filter(product_id=self.object.pk)
-        initial = {'product': self.object}
-        if self.request.user.is_authenticated:
-            initial['author'] = self.request.user.username
-        else:
-            initial['author'] = 'Anonymous user'
+        initial = {'product': self.object,
+                   'author': self.request.user.username}
         comments = Comment.objects.filter(product=self.object)
         comment_page = my_paginator(request=self.request, objects=comments, items_in_page=4)
         context['cart_form'] = CartAddProductForm()
@@ -261,17 +260,94 @@ class ProductDetailView(DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        context = self.get_context_data(*args, **kwargs)
         if 'add_comment' in self.request.POST and \
             self.request.user.is_authenticated:
             form = UserCommentForm(self.request.POST)
             if form.is_valid():
                 form.save()
-                context['form'] = form
+                add_form_to_context = form
                 messages.add_message(request=self.request, level=messages.SUCCESS,
                                      message='Комментарий добавлен')
             else:
-                context['form'] = UserCommentForm(request.POST)
-                messages.add_message(request=self.request, level=messages.WARNING,
+                add_form_to_context = UserCommentForm(request.POST)
+                messages.add_message(request=self.request, level=messages.ERROR,
                                      message='Возникла ошибка при добавлении комментария')
+        else:
+            messages.add_message(request=self.request, level=messages.WARNING,
+                                 message='Что бы оставить комментарий вам нужно'
+                                         ' зарегестрироватся или войти в свой аккаунт.')
+        context = self.get_context_data()
+        context['form'] = add_form_to_context
         return self.render_to_response(context)
+
+
+def comment_rating(request, **kwargs):
+    if request.user.is_authenticated:
+        comment = Comment.objects.get(pk=kwargs['comment_pk'])
+        comment_rating_object = CommentRating.objects.get_or_create(user=request.user, comment=comment)
+        if kwargs['action'] == 'plus':
+            if comment_rating_object[0].voted:
+                if comment_rating_object[0].last_action == 'plus':
+                    messages.add_message(request, level=messages.WARNING,
+                                         message='Вы не можете проголосовать дважды за один комментарий.')
+                elif comment_rating_object[0].last_action == 'minus':
+                    messages.add_message(request, level=messages.WARNING,
+                                         message='Голос отменен.')
+                    comment.rating += 1
+                    comment_rating_object[0].last_action = False
+                    comment_rating_object[0].voted = False
+                    comment_rating_object[0].save()
+                    comment.save()
+            else:
+                messages.add_message(request, level=messages.SUCCESS,
+                                     message='Голос засчитан.')
+                comment.rating += 1
+                comment_rating_object[0].last_action = 'plus'
+                comment_rating_object[0].voted = True
+                comment_rating_object[0].save()
+                comment.save()
+        elif kwargs['action'] == 'minus':
+            if comment_rating_object[0].voted:
+                if comment_rating_object[0].last_action == 'minus':
+                    messages.add_message(request, level=messages.WARNING,
+                                         message='Вы не можете проголосовать дважды за один комментарий.')
+                elif comment_rating_object[0].last_action == 'plus':
+                    messages.add_message(request, level=messages.WARNING,
+                                         message='Голос отменен.')
+                    comment.rating -= 1
+                    comment_rating_object[0].last_action = 'minus'
+                    comment_rating_object[0].voted = False
+                    comment_rating_object[0].save()
+                    comment.save()
+            else:
+                messages.add_message(request, level=messages.SUCCESS,
+                                     message='Голос засчитан.')
+                comment.rating -= 1
+                comment_rating_object[0].last_action = 'minus'
+                comment_rating_object[0].voted = True
+                comment_rating_object[0].save()
+                comment.save()
+
+    else:
+        messages.add_message(request, level=messages.ERROR,
+                             message='Для оценки комментариев войдите в свой аккаунт')
+
+    return HttpResponseRedirect(reverse_lazy('products:product_detail',  kwargs={'slug': kwargs['slug']}))
+
+
+def delete_comment(request, **kwargs):
+    comment = Comment.objects.get(pk=kwargs['comment_pk'])
+    if request.user.username == comment.author:
+        comment.delete()
+        messages.add_message(request, level=messages.SUCCESS, message='Комментарий удален.')
+    if 'slug' in kwargs:
+        return HttpResponseRedirect(reverse_lazy('products:product_detail', kwargs={'slug': kwargs['slug']}))
+    else:
+        return HttpResponseRedirect(reverse('products:user_comments'))
+
+
+@login_required()
+def user_comments(request):
+    template = 'user_comments.html'
+    comments = Comment.objects.filter(author=request.user)
+    return render(request, template_name=template, context={'comments': comments})

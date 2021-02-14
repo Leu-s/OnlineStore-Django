@@ -95,7 +95,3 @@ class UserCommentForm(forms.ModelForm):
         widgets = {
             'product': forms.HiddenInput,
             'author': forms.HiddenInput,}
-
-
-
-

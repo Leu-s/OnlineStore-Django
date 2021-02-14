@@ -50,3 +50,7 @@ admin.site.register(SuperCategory, SuperCategoryAdmin)
 admin.site.register(SubCategory, SubCategoryAdmin)
 admin.site.register(AdvUser)
 
+
+from .models import Comment, CommentRating
+admin.site.register(Comment)
+admin.site.register(CommentRating)
