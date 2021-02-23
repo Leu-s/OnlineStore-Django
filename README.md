@@ -1,12 +1,12 @@
 Python/Django course by CyberBionic Systematics.
 Online store website project.
 
-####Unordered list (-)
-  -Python;
-  -Django;
-  -MySQL;
-  -HTML/CSS;
-  -Bootstrap4;
+Main tools:
+  - Python
+  - Django
+  - MySQL
+  - HTML/CSS
+  - Bootstrap4
 
 The administrative part of the site allows administrators to add/change/edit products and edit user data and access rights.
 
