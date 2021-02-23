@@ -28,6 +28,7 @@ from .models import AdditionalImages
 from .models import Category
 from .models import SubCategory
 from .models import Comment
+from .models import CommentRating
 
 from .forms import ChangeUserInfoForm
 from .forms import RegisterUserForm
@@ -35,8 +36,6 @@ from .forms import SearchForm
 from .forms import UserCommentForm
 
 from cart.forms import CartAddProductForm
-
-from .models import CommentRating
 
 
 def other_page(request, page):
@@ -251,7 +250,6 @@ class ProductDetailView(DetailView):
     def get(self, request, *args, **kwargs):
         response = super().get(request, *args, **kwargs)
         viewed = request.session.get('viewed', [])
-
         if self._check_not_duplicate(viewed):
             if len(viewed) >= 5:
                 viewed.pop(0)
@@ -260,25 +258,35 @@ class ProductDetailView(DetailView):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
+        context = self.get_context_data()
+        form = None
         if 'add_comment' in self.request.POST and \
             self.request.user.is_authenticated:
             form = UserCommentForm(self.request.POST)
             if form.is_valid():
                 form.save()
-                add_form_to_context = form
                 messages.add_message(request=self.request, level=messages.SUCCESS,
                                      message='Комментарий добавлен')
             else:
-                add_form_to_context = UserCommentForm(request.POST)
                 messages.add_message(request=self.request, level=messages.ERROR,
                                      message='Возникла ошибка при добавлении комментария')
         else:
             messages.add_message(request=self.request, level=messages.WARNING,
                                  message='Что бы оставить комментарий вам нужно'
                                          ' зарегестрироватся или войти в свой аккаунт.')
-        context = self.get_context_data()
-        context['form'] = add_form_to_context
+        context['form'] = form
         return self.render_to_response(context)
+
+
+def save_changes_after_vote_on_comment(comment, comment_action, comment_rating_obj, cro_last_action, cro_voted):
+    if comment_action == '+':
+        comment.rating += 1
+    else:
+        comment.rating -= 1
+    comment_rating_obj.last_action = cro_last_action
+    comment_rating_obj.voted = cro_voted
+    comment_rating_obj.save()
+    comment.save()
 
 
 def comment_rating(request, **kwargs):
@@ -288,49 +296,51 @@ def comment_rating(request, **kwargs):
         if kwargs['action'] == 'plus':
             if comment_rating_object[0].voted:
                 if comment_rating_object[0].last_action == 'plus':
-                    messages.add_message(request, level=messages.WARNING,
-                                         message='Вы не можете проголосовать дважды за один комментарий.')
+                    messages.add_message(
+                        request,
+                        level=messages.WARNING,
+                        message='Вы не можете проголосовать дважды за один комментарий.')
                 elif comment_rating_object[0].last_action == 'minus':
-                    messages.add_message(request, level=messages.WARNING,
-                                         message='Голос отменен.')
-                    comment.rating += 1
-                    comment_rating_object[0].last_action = False
-                    comment_rating_object[0].voted = False
-                    comment_rating_object[0].save()
-                    comment.save()
+                    messages.add_message(
+                        request,
+                        level=messages.WARNING,
+                        message='Голос отменен.'
+                    )
+                    save_changes_after_vote_on_comment(comment, '+', comment_rating_object[0], False, False)
             else:
-                messages.add_message(request, level=messages.SUCCESS,
-                                     message='Голос засчитан.')
-                comment.rating += 1
-                comment_rating_object[0].last_action = 'plus'
-                comment_rating_object[0].voted = True
-                comment_rating_object[0].save()
-                comment.save()
+                save_changes_after_vote_on_comment(comment, '+', comment_rating_object[0], 'plus', True)
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message='Голос засчитан.'
+                    )
         elif kwargs['action'] == 'minus':
             if comment_rating_object[0].voted:
                 if comment_rating_object[0].last_action == 'minus':
-                    messages.add_message(request, level=messages.WARNING,
-                                         message='Вы не можете проголосовать дважды за один комментарий.')
+                    messages.add_message(
+                        request,
+                        level=messages.WARNING,
+                        message='Вы не можете проголосовать дважды за один комментарий.'
+                    )
                 elif comment_rating_object[0].last_action == 'plus':
-                    messages.add_message(request, level=messages.WARNING,
-                                         message='Голос отменен.')
-                    comment.rating -= 1
-                    comment_rating_object[0].last_action = 'minus'
-                    comment_rating_object[0].voted = False
-                    comment_rating_object[0].save()
-                    comment.save()
+                    save_changes_after_vote_on_comment(comment, '-', comment_rating_object[0], 'minus', False)
+                    messages.add_message(
+                        request,
+                        level=messages.WARNING,
+                        message='Голос отменен.'
+                    )
             else:
-                messages.add_message(request, level=messages.SUCCESS,
-                                     message='Голос засчитан.')
-                comment.rating -= 1
-                comment_rating_object[0].last_action = 'minus'
-                comment_rating_object[0].voted = True
-                comment_rating_object[0].save()
-                comment.save()
-
+                save_changes_after_vote_on_comment(comment, '-', comment_rating_object[0], 'minus', True)
+                messages.add_message(
+                    request,
+                    level=messages.SUCCESS,
+                    message='Голос засчитан.'
+                )
     else:
-        messages.add_message(request, level=messages.ERROR,
-                             message='Для оценки комментариев войдите в свой аккаунт')
+        messages.add_message(
+            request,
+            level=messages.ERROR,
+            message='Для оценки комментариев войдите в свой аккаунт')
 
     return HttpResponseRedirect(reverse_lazy('products:product_detail',  kwargs={'slug': kwargs['slug']}))
 

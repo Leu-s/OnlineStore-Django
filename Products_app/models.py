@@ -7,27 +7,34 @@ from django_extensions.db.fields import AutoSlugField
 
 
 class AdvUser(AbstractUser):
-    is_activated = models.BooleanField(default=True,
-                                       db_index=True,
-                                       verbose_name='Прошел активацию?')
+    is_activated = models.BooleanField(
+        default=True,
+        db_index=True,
+        verbose_name='Прошел активацию?')
 
     class Meta(AbstractUser.Meta):
         pass
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=30,
-                            db_index=True,
-                            unique=True,
-                            verbose_name='Название')
-    order = models.SmallIntegerField(default=0,
-                                     db_index=True,
-                                     verbose_name='Порядок')
-    super_category = models.ForeignKey('SuperCategory',
-                                       on_delete=models.PROTECT,
-                                       null=True,
-                                       blank=True,
-                                       verbose_name='Надкатегория')
+    name = models.CharField(
+        max_length=30,
+        db_index=True,
+        unique=True,
+        verbose_name='Название'
+    )
+    order = models.SmallIntegerField(
+        default=0,
+        db_index=True,
+        verbose_name='Порядок'
+    )
+    super_category = models.ForeignKey(
+        'SuperCategory',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name='Надкатегория'
+    )
 
 
 class SuperCategoryManager(models.Manager):
@@ -61,10 +68,12 @@ class SubCategory(Category):
 
     class Meta:
         proxy = True
-        ordering = ('super_category__order',
-                    'super_category__name',
-                    'order',
-                    'name')
+        ordering = (
+            'super_category__order',
+            'super_category__name',
+            'order',
+            'name'
+        )
         verbose_name = 'Подкатегория'
         verbose_name_plural = 'Подкатегории'
 
@@ -84,17 +93,53 @@ class Product(models.Model):
         ('BL', 'Белорусь'),
         ('CN', 'Китай'),
     )
-    slug = AutoSlugField(populate_from='title', slugify_function=my_slugify)
-    title = models.CharField(max_length=50, verbose_name='Название')
-    image = models.ImageField(blank=True, upload_to=get_timestamp_path, verbose_name='Изображение')
-    producing_country = models.CharField(null=True, max_length=24,choices=p_countries,
-                                         verbose_name='Страна производитель')
-    price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='Цена')
-    currency = models.CharField(null=True, max_length=8, choices=currency_list, verbose_name='Валюта')
-    description = models.TextField(max_length=256, verbose_name='Описание')
-    in_stock = models.BooleanField(default=True, verbose_name='В наличии')
-    published = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Дата добавления')
-    category = models.ForeignKey(SubCategory, on_delete=models.PROTECT, verbose_name='Категория')
+    slug = AutoSlugField(
+        populate_from='title',
+        slugify_function=my_slugify
+    )
+    title = models.CharField(
+        max_length=50,
+        verbose_name='Название'
+    )
+    image = models.ImageField(
+        blank=True,
+        upload_to=get_timestamp_path,
+        verbose_name='Изображение'
+    )
+    producing_country = models.CharField(
+        null=True,
+        max_length=24,
+        choices=p_countries,
+        verbose_name='Страна производитель'
+    )
+    price = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        verbose_name='Цена'
+    )
+    currency = models.CharField(
+        null=True,
+        max_length=8,
+        choices=currency_list,
+        verbose_name='Валюта'
+    )
+    description = models.TextField(
+        max_length=256,
+        verbose_name='Описание'
+    )
+    in_stock = models.BooleanField(
+        default=True,
+        verbose_name='В наличии'
+    )
+    published = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Дата добавления'
+    )
+    category = models.ForeignKey(
+        to=SubCategory,
+        on_delete=models.PROTECT,
+        verbose_name='Категория')
 
     def delete(self, *args, **kwargs):
         for i in self.additionalimages_set.all():
@@ -111,13 +156,27 @@ class Product(models.Model):
 
 
 class Comment(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE,
-                                verbose_name='Товар')
-    author = models.CharField(max_length=50, verbose_name='Автор')
-    text = models.TextField(verbose_name='Текст комментария')
-    published = models.DateTimeField(auto_now_add=True, db_index=True,
-                                     verbose_name='Опубликован')
-    rating = models.IntegerField(default=0, verbose_name='Рейтинг')
+    product = models.ForeignKey(
+        to=Product,
+        on_delete=models.CASCADE,
+        verbose_name='Товар'
+    )
+    author = models.CharField(
+        max_length=50,
+        verbose_name='Автор'
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария'
+    )
+    published = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        verbose_name='Опубликован'
+    )
+    rating = models.IntegerField(
+        default=0,
+        verbose_name='Рейтинг'
+    )
 
     class Meta:
         verbose_name = 'Комментарий'
@@ -130,15 +189,38 @@ class CommentRating(models.Model):
         ('+', 'plus'),
         ('-', 'minus')
     )
-    user = models.ForeignKey(AdvUser, on_delete=models.CASCADE, verbose_name='Проголосовавший пользователь')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Комментарий')
-    last_action = models.CharField(choices=action, default=False, verbose_name='Последнее действие', max_length=10)
-    voted = models.BooleanField(default=False, verbose_name='Уже голосовал?')
+    user = models.ForeignKey(
+        to=AdvUser,
+        on_delete=models.CASCADE,
+        verbose_name='Проголосовавший пользователь'
+    )
+    comment = models.ForeignKey(
+        to=Comment,
+        on_delete=models.CASCADE,
+        verbose_name='Комментарий'
+    )
+    last_action = models.CharField(
+        choices=action,
+        default=False,
+        verbose_name='Последнее действие',
+        max_length=10
+    )
+    voted = models.BooleanField(
+        default=False,
+        verbose_name='Уже голосовал?'
+    )
 
 
 class AdditionalImages(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, verbose_name='Объявление')
-    image = models.ImageField(upload_to=get_timestamp_path, verbose_name='Изображение')
+    product = models.ForeignKey(
+        to=Product,
+        on_delete=models.CASCADE,
+        verbose_name='Объявление'
+    )
+    image = models.ImageField(
+        upload_to=get_timestamp_path,
+        verbose_name='Изображение'
+    )
 
     class Meta:
         verbose_name = 'Дополнительное изображение'
