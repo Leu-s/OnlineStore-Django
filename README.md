@@ -20,7 +20,7 @@ The user part of the site includes such pages:
 The user can leave comments and rate comments of other users. Also the customer can add and remove items from the cart. The system keeps track of the last viewed products.
 
 
-Main page:
+(Main page:)
 
 
 ![](https://github.com/Leu-s/OnlineStore-Django/blob/main/media/github/main.png)
