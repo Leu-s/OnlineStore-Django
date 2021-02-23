@@ -1,7 +1,7 @@
 Python/Django course by CyberBionic Systematics.
 ========================
 
-Online store website project.
+## Online store website project.
 
 ###  Main tools:
   - Python
