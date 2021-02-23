@@ -1,7 +1,7 @@
 Python/Django course by CyberBionic Systematics.
 Online store website project.
 
-###Main tools:
+####Unordered list (-)
   -Python;
   -Django;
   -MySQL;
