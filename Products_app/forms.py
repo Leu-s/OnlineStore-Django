@@ -32,17 +32,12 @@ class RegisterUserForm(forms.ModelForm):
                                  widget=forms.PasswordInput,
                                  help_text='Введите тот же самый пароль еще раз')
 
-    def clean_password1(self):
-        password_1 = self.cleaned_data['password_1']
-        if password_1:
-            password_validation.validate_password(password_1)
-        return password_1
-
     def clean(self):
         super().clean()
         password_1 = self.cleaned_data['password_1']
         password_2 = self.cleaned_data['password_2']
-
+        if password_1:
+            password_validation.validate_password(password_1)
         if password_1 and password_2 and password_1 != password_2:
             errors = {
                 'password_2': ValidationError(
