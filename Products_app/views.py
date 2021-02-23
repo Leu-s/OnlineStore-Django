@@ -39,6 +39,10 @@ from cart.forms import CartAddProductForm
 
 
 def other_page(request, page):
+    """
+    Redirecting to additional pages of the site,
+    for example "About us" or "user agreement"
+    """
     try:
         template = get_template(page + '.html')
     except TemplateDoesNotExist:
@@ -47,6 +51,9 @@ def other_page(request, page):
 
 
 class RegisterUserView(CreateView):
+    """
+    User registration page
+    """
     model = AdvUser
     template_name = 'register_user.html'
     form_class = RegisterUserForm
@@ -54,27 +61,40 @@ class RegisterUserView(CreateView):
 
 
 class RegisterSuccessfulView(TemplateView):
+    """
+    The page to which successfully
+    registered users are redirected
+    """
     template_name = 'register_successful.html'
 
 
 @login_required
 def profile(request):
+    """
+    User profile page.
+
+    Decorator @login_required is necessary so
+    that unauthorized users cannot get to this page.
+    """
     return render(request, 'profile.html')
 
 
 class PLoginView(LoginView):
+    """
+    User login page
+    """
     template_name = 'login.html'
     success_url = reverse_lazy('products:index')
 
 
-class PLogoutView(LoginRequiredMixin,
-                  LogoutView):
+class PLogoutView(LoginRequiredMixin, LogoutView):
     template_name = 'logout.html'
 
 
-class ChangeUserInfoView(SuccessMessageMixin,
-                         LoginRequiredMixin,
-                         UpdateView):
+class ChangeUserInfoView(SuccessMessageMixin, LoginRequiredMixin, UpdateView):
+    """
+    Displaying a form for changing information by the user
+    """
     model = AdvUser
     template_name = 'change_user_info.html'
     form_class = ChangeUserInfoForm
@@ -92,9 +112,7 @@ class ChangeUserInfoView(SuccessMessageMixin,
                                  pk=self.user_id)
 
 
-class PChangePasswordView(SuccessMessageMixin,
-                          LoginRequiredMixin,
-                          PasswordChangeView):
+class PChangePasswordView(SuccessMessageMixin, LoginRequiredMixin, PasswordChangeView):
     template_name = 'change_password.html'
     success_url = reverse_lazy('products:profile')
     success_message = 'Пароль успешно изменен'
@@ -124,6 +142,7 @@ class PDeleteUserView(LoginRequiredMixin,
 
 
 def search_keyword(request, products_obj):
+    """Search for matches by keyword"""
     keyword = ''
     products = products_obj
     if 'search_keyword' in request.GET:
@@ -144,6 +163,9 @@ def my_paginator(request, objects, items_in_page=1):
 
 
 def index(request):
+    """
+    Home page of the site with a list of products
+    """
     template = 'index.html'
     keyword = search_keyword(request=request,
                              products_obj=Product.objects.all())
@@ -187,7 +209,6 @@ class InCategoryView(ListView):
 
 
 class InSubCategoryView(ListView):
-    """in sub category"""
     template_name = 'in_sub_category.html'
     model = Product
     context_object_name = 'products'
@@ -279,6 +300,9 @@ class ProductDetailView(DetailView):
 
 
 def save_changes_after_vote_on_comment(comment, comment_action, comment_rating_obj, cro_last_action, cro_voted):
+    """
+    Helper function to comment_rating for saving changes
+    """
     if comment_action == '+':
         comment.rating += 1
     else:
@@ -290,6 +314,13 @@ def save_changes_after_vote_on_comment(comment, comment_action, comment_rating_o
 
 
 def comment_rating(request, **kwargs):
+    """
+    Changing the rating of comments.
+
+    -The user must be registered.
+    -The value can be increased or decreased by one.
+    -User can cancel or change his choice.
+    """
     if request.user.is_authenticated:
         comment = Comment.objects.get(pk=kwargs['comment_pk'])
         comment_rating_object = CommentRating.objects.get_or_create(user=request.user, comment=comment)
@@ -346,6 +377,10 @@ def comment_rating(request, **kwargs):
 
 
 def delete_comment(request, **kwargs):
+    """
+    Method for user to delete his comment.
+    User must be logged in.
+    """
     comment = Comment.objects.get(pk=kwargs['comment_pk'])
     if request.user.username == comment.author:
         comment.delete()
@@ -358,6 +393,9 @@ def delete_comment(request, **kwargs):
 
 @login_required()
 def user_comments(request):
+    """
+    Page of all user comments
+    """
     template = 'user_comments.html'
     comments = Comment.objects.filter(author=request.user)
     return render(request, template_name=template, context={'comments': comments})
